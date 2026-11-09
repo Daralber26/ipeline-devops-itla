@@ -43,7 +43,7 @@ describe('API de tareas', () => {
     test('DELETE /api/tareas/:id elimina la tarea', async () => {
     await request(app).post('/api/tareas').send({ titulo: 'Borrar esta' });
     const r = await request(app).delete('/api/tareas/1');
-    expect(r.status).toBe(200);
+    expect(r.status).toBe(204);
     const lista = await request(app).get('/api/tareas');
     expect(lista.body).toHaveLength(0);
   });
