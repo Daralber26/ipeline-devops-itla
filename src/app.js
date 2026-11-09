@@ -8,6 +8,7 @@ function createApp() {
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
   const tareas = [];
+  let siguienteId = 1;
   const metricas = { solicitudes: 0, errores: 0, inicio: Date.now() };
 
   // Registro (log) simple de cada solicitud: base para el monitoreo.
@@ -35,7 +36,7 @@ function createApp() {
   app.post('/api/tareas', (req, res) => {
     const titulo = (req.body && typeof req.body.titulo === 'string') ? req.body.titulo.trim() : '';
     if (!titulo) return res.status(400).json({ error: 'El título es obligatorio' });
-    const tarea = { id: tareas.length + 1, titulo, completada: false };
+    const tarea = { id: siguienteId++, titulo, completada: false };
     tareas.push(tarea);
     res.status(201).json(tarea);
   });
@@ -47,6 +48,13 @@ function createApp() {
     res.json(tarea);
   });
 
+    app.delete('/api/tareas/:id', (req, res) => {
+    const posicion = tareas.findIndex(t => t.id === Number(req.params.id));
+    if (posicion === -1) return res.status(404).json({ error: 'Tarea no encontrada' });
+    tareas.splice(posicion, 1);
+    res.status(204).send();
+  });
+  
   return app;
 }
 

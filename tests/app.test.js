@@ -39,4 +39,37 @@ describe('API de tareas', () => {
     expect(r.body.tareas).toBe(1);
     expect(r.body.solicitudes).toBeGreaterThanOrEqual(2);
   });
+
+    test('DELETE /api/tareas/:id elimina la tarea', async () => {
+    await request(app).post('/api/tareas').send({ titulo: 'Borrar esta' });
+    const r = await request(app).delete('/api/tareas/1');
+    expect(r.status).toBe(204);
+    const lista = await request(app).get('/api/tareas');
+    expect(lista.body).toHaveLength(0);
+  });
+
+  test('DELETE de una tarea inexistente devuelve 404', async () => {
+    const r = await request(app).delete('/api/tareas/99');
+    expect(r.status).toBe(404);
+  });
+
+  test('los ids no se repiten después de borrar una tarea', async () => {
+    await request(app).post('/api/tareas').send({ titulo: 'Primera' });
+    await request(app).post('/api/tareas').send({ titulo: 'Segunda' });
+    await request(app).delete('/api/tareas/1');
+    const r = await request(app).post('/api/tareas').send({ titulo: 'Tercera' });
+    expect(r.body.id).toBe(3);
+  });
+
+  test('registra cada solicitud cuando no está en modo test', async () => {
+    const anterior = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    const espia = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await request(app).get('/health');
+    await new Promise(resolve => setImmediate(resolve));
+    process.env.NODE_ENV = anterior;
+    expect(espia).toHaveBeenCalled();
+    espia.mockRestore();
+  });
+  
 });
